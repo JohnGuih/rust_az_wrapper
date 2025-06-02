@@ -30,6 +30,18 @@ This project provides a **type-safe and ergonomic Rust interface** for Azure CLI
 
 ## 🚀 Quick Start
 
+### ⚙️ Prerequisites
+
+- **Rust 1.70+** 
+- **Azure CLI** installed and configured (`az --version`)
+- **Valid Azure authentication** (`az login`)
+
+```bash
+# Check prerequisites
+az --version
+az account show  # Should show active subscription
+```
+
 ### Basic Client
 
 ```rust
@@ -199,29 +211,6 @@ let db_throughput = client.get_database_throughput("account", "rg", "db").await?
 let updated = client.update_database_throughput("account", "rg", "db", Some(800), None).await?;
 ```
 
-## ⚙️ Prerequisites
-
-- **Rust 1.70+** 
-- **Azure CLI** installed and configured (`az --version`)
-- **Valid Azure authentication** (`az login`)
-
-```bash
-# Check prerequisites
-az --version
-az account show  # Should show active subscription
-```
-
-## 🚀 Installation
-
-### Add as Dependency
-
-```toml
-[dependencies]
-rust_az_wrapper = "0.2.0"
-tokio = { version = "1.0", features = ["full"] }
-serde_json = "1.0"
-```
-
 ### Clone and Test
 
 ```bash
@@ -242,19 +231,12 @@ The project has **extensive test coverage** with real Azure data:
 
 ```bash
 # Unit and integration tests
-cargo test                          # ✅ All passing
+cargo test
 
 # Functional examples  
-cargo run --example basic_usage     # ✅ Tested with 157 RGs
-cargo run --example subscription_usage  # ✅ Tested with 138+ subscriptions
+cargo run --example basic_usage
+cargo run --example subscription_usage
 ```
-
-**Tested with real data:**
-- ✅ **138+ subscriptions** listed successfully
-- ✅ **157 resource groups** processed correctly  
-- ✅ **Multiple Cosmos accounts** discovered and processed
-- ✅ **JSON serialization/deserialization** perfect
-- ✅ **Specific subscription support** fully functional
 
 ## 🔄 **Automatic JSON Conversion**
 
@@ -320,11 +302,3 @@ let keys = client.list_cosmos_keys("source", "rg").await?;
 3. Commit changes (`git commit -am 'Add new feature'`)
 4. Push to branch (`git push origin feature/new-feature`) 
 5. Open a Pull Request
-
-## 📄 **License**
-
-This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for details.
-
----
-
-**🔥 Production ready** • **🧪 Extensively tested** • **�� Well documented**
