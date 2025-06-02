@@ -1,46 +1,53 @@
-//! # Rust Azure CLI Wrapper for Cosmos DB
-//!
-//! A type-safe and ergonomic Rust wrapper for Azure CLI operations focused on **Cosmos DB**.
+//! Azure CLI Wrapper for Rust
 //! 
-//! This wrapper abstracts Azure CLI calls related to Cosmos DB and provides an ergonomic Rust API for:
+//! This library provides a Rust wrapper around the Azure CLI, focused on **read-only** operations
+//! for Azure Cosmos DB resources. It offers a type-safe interface to query and inspect Azure
+//! resources without the risk of accidental modifications.
 //! 
-//! - **Subscriptions**: List and manage Azure subscriptions
-//! - **Cosmos DB Accounts**: Create, list, update and delete accounts  
-//! - **Databases**: Manage SQL and MongoDB databases
-//! - **Containers**: Manage containers and collections
-//! - **Keys and Connection Strings**: Get access keys and connection strings
-//! - **Throughput**: Manage throughput settings
-//! - **Failover**: Configure failover between regions
+//! ## Features
 //! 
-//! All results are returned as Rust objects that can be easily converted to JSON.
+//! - **Cosmos DB Accounts**: List and show account details
+//! - **Keys & Connection Strings**: Access read-only and master keys
+//! - **SQL API**: List databases and containers 
+//! - **MongoDB API**: List databases and collections
+//! - **Throughput**: Query throughput settings
+//! - **Subscriptions**: List and show subscription information
+//! - **Resource Groups**: List and show resource group details
 //! 
-//! ## Quick Example
+//! ## Read-Only Design
 //! 
-//! ```rust,no_run
+//! This library is intentionally designed for **read-only operations only**. It does not provide
+//! methods to create, update, or delete Azure resources, ensuring safe exploration and monitoring
+//! of your Azure environment without risk of accidental changes.
+//! 
+//! ## Example
+//! 
+//! ```rust
 //! use rust_az_wrapper::AzureClient;
 //! 
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let client = AzureClient::new()?;
 //!     
-//!     // List Cosmos DB accounts
-//!     let accounts = client.list_cosmos_accounts(None).await?;
-//!     println!("Found {} Cosmos accounts", accounts.len());
+//!     // Verify authentication
+//!     client.verify_authentication().await?;
 //!     
-//!     // Convert to JSON
-//!     let json = serde_json::to_string_pretty(&accounts)?;
-//!     println!("{}", json);
+//!     // List all Cosmos DB accounts
+//!     let accounts = client.list_cosmos_accounts(None).await?;
+//!     for account in accounts {
+//!         println!("Account: {} in {}", account.name, account.location);
+//!     }
 //!     
 //!     Ok(())
 //! }
 //! ```
 
-pub use crate::client::AzureClient;
-pub use crate::error::{AzureError, Result};
-pub use crate::models::*;
-
 pub mod client;
 pub mod commands;
 pub mod error;
 pub mod models;
-pub mod utils; 
+pub mod utils;
+
+pub use client::AzureClient;
+pub use error::{AzureError, Result};
+pub use models::*; 

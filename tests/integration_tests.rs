@@ -1,125 +1,119 @@
-//! Testes de integração para o wrapper Azure CLI
-//! 
-//! Estes testes requerem que o Azure CLI esteja instalado e configurado.
-//! Execute com: cargo test --test integration_tests -- --ignored
+//! Integration tests for Azure CLI wrapper
 
 use rust_az_wrapper::{AzureClient, Result};
 
 #[tokio::test]
-#[ignore] // Ignora por padrão pois requer Azure CLI configurado
-async fn test_list_subscriptions() -> Result<()> {
-    let client = AzureClient::new()?;
-    
-    let subscriptions = client.list_subscriptions().await?;
-    
-    // Deve ter pelo menos uma subscription
-    assert!(!subscriptions.is_empty(), "Deve ter pelo menos uma subscription");
-    
-    // Verifica se os campos obrigatórios estão presentes
-    for sub in &subscriptions {
-        assert!(!sub.id.is_empty(), "ID da subscription não pode estar vazio");
-        assert!(!sub.display_name.is_empty(), "Nome da subscription não pode estar vazio");
-        assert!(!sub.tenant_id.is_empty(), "Tenant ID não pode estar vazio");
-    }
-    
-    println!("✅ Teste de listagem de subscriptions passou");
-    Ok(())
-}
-
-#[tokio::test]
-#[ignore] // Ignora por padrão pois requer Azure CLI configurado
+#[ignore] // Ignored by default as it requires configured Azure CLI
 async fn test_show_current_subscription() -> Result<()> {
     let client = AzureClient::new()?;
-    
     let subscription = client.show_current_subscription().await?;
     
-    // Verifica se os campos obrigatórios estão presentes
-    assert!(!subscription.id.is_empty(), "ID da subscription não pode estar vazio");
-    assert!(!subscription.display_name.is_empty(), "Nome da subscription não pode estar vazio");
-    assert!(!subscription.tenant_id.is_empty(), "Tenant ID não pode estar vazio");
+    // Check if mandatory fields are present
+    assert!(!subscription.id.is_empty());
+    assert!(!subscription.display_name.is_empty());
+    assert!(!subscription.state.is_empty());
+    assert!(!subscription.tenant_id.is_empty());
     
-    println!("✅ Teste de subscription atual passou");
+    println!("Current subscription: {}", subscription.display_name);
+    
     Ok(())
 }
 
 #[tokio::test]
-#[ignore] // Ignora por padrão pois requer Azure CLI configurado
-async fn test_list_cosmos_accounts() -> Result<()> {
+#[ignore] // Ignored by default as it requires configured Azure CLI
+async fn test_list_subscriptions() -> Result<()> {
     let client = AzureClient::new()?;
+    let subscriptions = client.list_subscriptions().await?;
     
-    let accounts = client.list_cosmos_accounts(None).await?;
-    
-    // Pode não ter accounts, mas se tiver, deve ter campos válidos
-    for account in &accounts {
-        assert!(!account.name.is_empty(), "Nome da account não pode estar vazio");
-        assert!(!account.id.is_empty(), "ID da account não pode estar vazio");
-        assert!(!account.location.is_empty(), "Localização não pode estar vazia");
-        assert!(!account.resource_group.is_empty(), "Resource group não pode estar vazio");
-        assert!(!account.document_endpoint.is_empty(), "Document endpoint não pode estar vazio");
+    // Check if mandatory fields are present
+    for subscription in &subscriptions {
+        assert!(!subscription.id.is_empty());
+        assert!(!subscription.display_name.is_empty());
+        assert!(!subscription.state.is_empty());
+        assert!(!subscription.tenant_id.is_empty());
     }
     
-    println!("✅ Teste de listagem de Cosmos accounts passou");
+    println!("Found {} subscriptions", subscriptions.len());
+    
     Ok(())
 }
 
 #[tokio::test]
-#[ignore] // Ignora por padrão pois requer Azure CLI configurado
+#[ignore] // Ignored by default as it requires configured Azure CLI
+async fn test_list_cosmos_accounts() -> Result<()> {
+    let client = AzureClient::new()?;
+    let accounts = client.list_cosmos_accounts(None).await?;
+    
+    // May not have accounts, but if it does, must have valid fields
+    for account in &accounts {
+        assert!(!account.name.is_empty());
+        assert!(!account.id.is_empty());
+        assert!(!account.location.is_empty());
+        assert!(!account.resource_group.is_empty());
+        assert!(!account.resource_type.is_empty());
+        assert!(!account.kind.is_empty());
+        assert!(!account.provisioning_state.is_empty());
+        assert!(!account.document_endpoint.is_empty());
+    }
+    
+    println!("Found {} Cosmos accounts", accounts.len());
+    
+    Ok(())
+}
+
+#[tokio::test]
+#[ignore] // Ignored by default as it requires configured Azure CLI
 async fn test_json_serialization() -> Result<()> {
     let client = AzureClient::new()?;
     
-    // Testa serialização de subscriptions
+    // Test subscription serialization
     let subscriptions = client.list_subscriptions().await?;
-    let json = serde_json::to_string_pretty(&subscriptions)?;
-    assert!(!json.is_empty(), "JSON de subscriptions não pode estar vazio");
+    let _json = serde_json::to_string(&subscriptions)?;
     
-    // Testa deserialização
-    let _deserialized: Vec<rust_az_wrapper::Subscription> = serde_json::from_str(&json)?;
+    // Test deserialization
+    let _parsed: Vec<rust_az_wrapper::models::Subscription> = serde_json::from_str(&_json)?;
     
-    // Testa serialização de Cosmos accounts
+    // Test Cosmos accounts serialization
     let accounts = client.list_cosmos_accounts(None).await?;
-    let json = serde_json::to_string_pretty(&accounts)?;
-    assert!(!json.is_empty(), "JSON de Cosmos accounts não pode estar vazio");
+    let _json = serde_json::to_string(&accounts)?;
     
-    // Testa deserialização
-    let _deserialized: Vec<rust_az_wrapper::CosmosAccount> = serde_json::from_str(&json)?;
+    // Test deserialization
+    let _parsed: Vec<rust_az_wrapper::models::CosmosAccount> = serde_json::from_str(&_json)?;
     
-    println!("✅ Teste de serialização JSON passou");
+    println!("✅ JSON serialization test passed");
+    
     Ok(())
 }
 
 #[tokio::test]
-#[ignore] // Ignora por padrão pois requer Azure CLI configurado
+#[ignore] // Ignored by default as it requires configured Azure CLI
 async fn test_cosmos_operations_if_account_exists() -> Result<()> {
     let client = AzureClient::new()?;
-    
     let accounts = client.list_cosmos_accounts(None).await?;
     
     if let Some(account) = accounts.first() {
-        let account_name = &account.name;
-        let resource_group = &account.resource_group;
+        // Test key retrieval
+        let keys = client.list_cosmos_keys(&account.name, &account.resource_group).await?;
+        assert!(!keys.primary_master_key.is_empty());
+        assert!(!keys.secondary_master_key.is_empty());
         
-        // Testa obtenção de chaves
-        let keys = client.list_cosmos_keys(account_name, resource_group).await?;
-        assert!(!keys.primary_master_key.is_empty(), "Primary key não pode estar vazia");
-        assert!(!keys.secondary_master_key.is_empty(), "Secondary key não pode estar vazia");
+        // Test database listing
+        let databases = client.list_sql_databases(&account.name, &account.resource_group).await?;
         
-        // Testa listagem de databases SQL
-        let databases = client.list_sql_databases(account_name, resource_group).await?;
-        
-        // Se há databases, testa listagem de containers
+        // If there are databases, test container listing
         if let Some(database) = databases.first() {
-            let containers = client.list_sql_containers(account_name, resource_group, &database.name).await?;
+            let containers = client.list_sql_containers(&account.name, &account.resource_group, &database.name).await?;
             
-            // Verifica se containers têm campos válidos
+            // Check if containers have valid fields
             for container in &containers {
-                assert!(!container.name.is_empty(), "Nome do container não pode estar vazio");
-                assert!(!container.id.is_empty(), "ID do container não pode estar vazio");
+                assert!(!container.name.is_empty());
+                assert!(!container.id.is_empty());
             }
         }
         
-        println!("✅ Teste de operações Cosmos passou");
+        println!("✅ Cosmos operations test passed");
     } else {
-        println!("⚠️ Nenhuma Cosmos account encontrada, pulando teste de operações");
+        println!("⚠️ No Cosmos account found, skipping operations test");
     }
     
     Ok(())

@@ -1,6 +1,6 @@
 //! Example demonstrating JSON serialization and deserialization capabilities
 
-use rust_az_wrapper::{AzureClient, Result};
+use rust_az_wrapper::{AzureClient, Result, Subscription, CosmosAccount, CosmosKeys};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -20,7 +20,7 @@ async fn main() -> Result<()> {
     println!("{}", subscription_json);
     
     // Convert back from JSON to verify serialization works both ways
-    let parsed_subscription: rust_az_wrapper::Subscription = serde_json::from_str(&subscription_json)?;
+    let parsed_subscription: Subscription = serde_json::from_str(&subscription_json)?;
     println!("\n✅ JSON parsing successful!");
     println!("📝 Parsed subscription name: {}", parsed_subscription.display_name);
     
@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
         println!("{}", account_json);
         
         // Verify parsing
-        let parsed_account: rust_az_wrapper::CosmosAccount = serde_json::from_str(&account_json)?;
+        let parsed_account: CosmosAccount = serde_json::from_str(&account_json)?;
         println!("\n✅ Cosmos account JSON parsing successful!");
         println!("📍 Parsed account name: {}", parsed_account.name);
         println!("🌐 Parsed endpoint: {}", parsed_account.document_endpoint);
@@ -71,7 +71,7 @@ async fn main() -> Result<()> {
                 println!("{}", keys_json);
                 
                 // Verify keys parsing
-                let parsed_keys: rust_az_wrapper::CosmosKeys = serde_json::from_str(&keys_json)?;
+                let parsed_keys: CosmosKeys = serde_json::from_str(&keys_json)?;
                 println!("\n✅ Keys JSON parsing successful!");
                 println!("🔐 Has primary key: {}", !parsed_keys.primary_master_key.is_empty());
             }

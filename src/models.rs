@@ -1,252 +1,552 @@
-//! Modelos de dados para recursos do Azure focados em Cosmos DB
+//! Data models for Azure resources focused on Cosmos DB
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Informações de uma Subscription do Azure
+/// Azure Subscription information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Subscription {
-    /// ID da subscription
+    /// Subscription ID
     pub id: String,
-    /// Nome da subscription
+    /// Subscription name
     #[serde(alias = "name")]
     pub display_name: String,
-    /// Estado da subscription
+    /// Subscription state
     pub state: String,
-    /// ID do tenant
+    /// Tenant ID
     #[serde(alias = "tenantId")]
     pub tenant_id: String,
-    /// Se é a subscription padrão
+    /// Whether this is the default subscription
     #[serde(alias = "isDefault")]
     pub is_default: Option<bool>,
 }
 
-/// Informações de uma Cosmos DB Account
+/// Resource Group information
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CosmosAccount {
-    /// Nome da conta
+pub struct ResourceGroup {
+    /// Resource group name
     pub name: String,
-    /// ID do recurso
+    /// Resource group ID
     pub id: String,
-    /// Localização da conta
+    /// Resource group location
     pub location: String,
-    /// Grupo de recursos
-    #[serde(alias = "resourceGroup", alias = "resource_group")]
-    pub resource_group: String,
-    /// Tipo de recurso
-    #[serde(rename = "type", alias = "resourceType", alias = "resource_type")]
-    pub resource_type: String,
-    /// Tipo de conta (SQL, MongoDB, etc.)
-    pub kind: String,
-    /// Status de provisionamento
+    /// Associated tags
+    pub tags: Option<HashMap<String, String>>,
+    /// Provisioning state within properties
+    pub properties: Option<ResourceGroupProperties>,
+}
+
+/// Resource Group properties
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceGroupProperties {
+    /// Provisioning state
     #[serde(alias = "provisioningState", alias = "provisioning_state")]
     pub provisioning_state: String,
-    /// URI de endpoint
+}
+
+/// Cosmos DB Account information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CosmosAccount {
+    /// Account name
+    pub name: String,
+    /// Resource ID
+    pub id: String,
+    /// Account location
+    pub location: String,
+    /// Resource group
+    #[serde(alias = "resourceGroup", alias = "resource_group")]
+    pub resource_group: String,
+    /// Resource type
+    #[serde(rename = "type", alias = "resourceType", alias = "resource_type")]
+    pub resource_type: String,
+    /// Account type (SQL, MongoDB, etc.)
+    pub kind: String,
+    /// Provisioning status
+    #[serde(alias = "provisioningState", alias = "provisioning_state")]
+    pub provisioning_state: String,
+    /// Endpoint URI
     #[serde(alias = "documentEndpoint", alias = "document_endpoint")]
     pub document_endpoint: String,
-    /// Tags associadas
+    /// Associated tags
     pub tags: Option<HashMap<String, String>>,
-    /// Propriedades específicas
-    pub properties: Option<CosmosAccountProperties>,
+    
+    // Cosmos DB specific fields directly at root level
+    /// Backup policy
+    #[serde(alias = "backupPolicy")]
+    pub backup_policy: Option<BackupPolicy>,
+    /// Analytical storage configuration
+    #[serde(alias = "analyticalStorageConfiguration")]
+    pub analytical_storage_configuration: Option<AnalyticalStorageConfiguration>,
+    /// API properties
+    #[serde(alias = "apiProperties")]
+    pub api_properties: Option<ApiProperties>,
+    /// Account capabilities
+    pub capabilities: Option<Vec<Capability>>,
+    /// Capacity configuration
+    pub capacity: Option<CapacitySettings>,
+    /// Consistency policy
+    #[serde(alias = "consistencyPolicy")]
+    pub consistency_policy: Option<ConsistencyPolicy>,
+    /// CORS settings
+    pub cors: Option<Vec<CorsPolicy>>,
+    /// Creation mode
+    #[serde(alias = "createMode")]
+    pub create_mode: Option<String>,
+    /// Customer managed key status
+    #[serde(alias = "customerManagedKeyStatus")]
+    pub customer_managed_key_status: Option<String>,
+    /// Database account offer type
+    #[serde(alias = "databaseAccountOfferType")]
+    pub database_account_offer_type: Option<String>,
+    /// Default identity
+    #[serde(alias = "defaultIdentity")]
+    pub default_identity: Option<String>,
+    /// Whether key-based metadata write access is disabled
+    #[serde(alias = "disableKeyBasedMetadataWriteAccess")]
+    pub disable_key_based_metadata_write_access: Option<bool>,
+    /// Whether local authentication is disabled
+    #[serde(alias = "disableLocalAuth")]
+    pub disable_local_auth: Option<bool>,
+    /// Whether analytical storage is enabled
+    #[serde(alias = "enableAnalyticalStorage")]
+    pub enable_analytical_storage: Option<bool>,
+    /// Whether automatic failover is enabled
+    #[serde(alias = "enableAutomaticFailover")]
+    pub enable_automatic_failover: Option<bool>,
+    /// Whether burst capacity is enabled
+    #[serde(alias = "enableBurstCapacity")]
+    pub enable_burst_capacity: Option<bool>,
+    /// Whether Cassandra connector is enabled
+    #[serde(alias = "enableCassandraConnector")]
+    pub enable_cassandra_connector: Option<bool>,
+    /// Whether free tier is enabled
+    #[serde(alias = "enableFreeTier")]
+    pub enable_free_tier: Option<bool>,
+    /// Whether multiple write locations are enabled
+    #[serde(alias = "enableMultipleWriteLocations")]
+    pub enable_multiple_write_locations: Option<bool>,
+    /// Whether partition merge is enabled
+    #[serde(alias = "enablePartitionMerge")]
+    pub enable_partition_merge: Option<bool>,
+    /// Whether per-region per-partition autoscale is enabled
+    #[serde(alias = "enablePerRegionPerPartitionAutoscale")]
+    pub enable_per_region_per_partition_autoscale: Option<bool>,
+    /// Failover policies
+    #[serde(alias = "failoverPolicies")]
+    pub failover_policies: Option<Vec<FailoverPolicy>>,
+    /// Identity configuration
+    pub identity: Option<AccountIdentity>,
+    /// Instance ID
+    #[serde(alias = "instanceId")]
+    pub instance_id: Option<String>,
+    /// IP rules
+    #[serde(alias = "ipRules")]
+    pub ip_rules: Option<Vec<IpRule>>,
+    /// Whether virtual network filter is enabled
+    #[serde(alias = "isVirtualNetworkFilterEnabled")]
+    pub is_virtual_network_filter_enabled: Option<bool>,
+    /// Key Vault key URI
+    #[serde(alias = "keyVaultKeyUri")]
+    pub key_vault_key_uri: Option<String>,
+    /// Keys metadata
+    #[serde(alias = "keysMetadata")]
+    pub keys_metadata: Option<KeysMetadata>,
+    /// Account locations
+    pub locations: Option<Vec<AccountLocation>>,
+    /// Minimal TLS version
+    #[serde(alias = "minimalTlsVersion")]
+    pub minimal_tls_version: Option<String>,
+    /// Network ACL bypass
+    #[serde(alias = "networkAclBypass")]
+    pub network_acl_bypass: Option<String>,
+    /// Resource IDs for network ACL bypass
+    #[serde(alias = "networkAclBypassResourceIds")]
+    pub network_acl_bypass_resource_ids: Option<Vec<String>>,
+    /// Private endpoint connections
+    #[serde(alias = "privateEndpointConnections")]
+    pub private_endpoint_connections: Option<Vec<PrivateEndpointConnection>>,
+    /// Public network access
+    #[serde(alias = "publicNetworkAccess")]
+    pub public_network_access: Option<String>,
+    /// Read locations
+    #[serde(alias = "readLocations")]
+    pub read_locations: Option<Vec<AccountLocation>>,
+    /// Restore parameters
+    #[serde(alias = "restoreParameters")]
+    pub restore_parameters: Option<RestoreParameters>,
+    /// System data
+    #[serde(alias = "systemData")]
+    pub system_data: Option<SystemData>,
+    /// Virtual network rules
+    #[serde(alias = "virtualNetworkRules")]
+    pub virtual_network_rules: Option<Vec<VirtualNetworkRule>>,
+    /// Write locations
+    #[serde(alias = "writeLocations")]
+    pub write_locations: Option<Vec<AccountLocation>>,
 }
 
-/// Propriedades detalhadas de uma Cosmos Account
+/// Analytical storage configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CosmosAccountProperties {
-    /// Configurações de backup
-    pub backup_policy: Option<BackupPolicy>,
-    /// Configurações de capacidade
-    pub capacity: Option<CapacitySettings>,
-    /// Configurações de consistência
-    pub consistency_policy: Option<ConsistencyPolicy>,
-    /// Configurações de CORS
-    pub cors: Option<Vec<CorsPolicy>>,
-    /// Se failover automático está habilitado
-    pub enable_automatic_failover: Option<bool>,
-    /// Se multiple write locations está habilitado
-    pub enable_multiple_write_locations: Option<bool>,
-    /// Localizações da conta
-    pub locations: Option<Vec<AccountLocation>>,
+pub struct AnalyticalStorageConfiguration {
+    /// Schema type
+    pub schema_type: Option<String>,
 }
 
-/// Política de backup
+/// API properties
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiProperties {
+    /// Server version (for MongoDB)
+    pub server_version: Option<String>,
+}
+
+/// Account capability
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Capability {
+    /// Capability name
+    pub name: String,
+}
+
+/// Backup policy
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BackupPolicy {
-    /// Tipo de backup
+    /// Backup type
     #[serde(rename = "type")]
     pub backup_type: String,
-    /// Se backup periódico está habilitado
+    /// Migration state
+    pub migration_state: Option<String>,
+    /// Periodic mode properties
     pub periodic_mode_properties: Option<PeriodicBackupProperties>,
+    /// Continuous mode properties
+    pub continuous_mode_properties: Option<ContinuousBackupProperties>,
 }
 
-/// Propriedades de backup periódico
+/// Periodic backup properties
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PeriodicBackupProperties {
-    /// Intervalo de backup em minutos
+    /// Backup interval in minutes
     pub backup_interval_in_minutes: Option<i32>,
-    /// Retenção de backup em horas
+    /// Backup retention interval in hours
     pub backup_retention_interval_in_hours: Option<i32>,
+    /// Backup storage redundancy
+    pub backup_storage_redundancy: Option<String>,
 }
 
-/// Configurações de capacidade
+/// Continuous backup properties
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ContinuousBackupProperties {
+    /// Continuous backup tier (e.g., Continuous7Days, Continuous30Days)
+    pub tier: Option<String>,
+}
+
+/// Failover policy
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FailoverPolicy {
+    /// Failover priority
+    pub failover_priority: i32,
+    /// Location ID
+    pub id: Option<String>,
+    /// Location name
+    pub location_name: String,
+}
+
+/// Account identity
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountIdentity {
+    /// Principal ID
+    pub principal_id: Option<String>,
+    /// Tenant ID
+    pub tenant_id: Option<String>,
+    /// Identity type
+    #[serde(rename = "type")]
+    pub identity_type: Option<String>,
+    /// User assigned identities
+    pub user_assigned_identities: Option<HashMap<String, serde_json::Value>>,
+}
+
+/// IP rule
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IpRule {
+    /// IP address or range
+    pub ip_address_or_range: String,
+}
+
+/// Keys metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct KeysMetadata {
+    /// Primary master key
+    pub primary_master_key: Option<KeyMetadata>,
+    /// Primary readonly master key
+    pub primary_readonly_master_key: Option<KeyMetadata>,
+    /// Secondary master key
+    pub secondary_master_key: Option<KeyMetadata>,
+    /// Secondary readonly master key
+    pub secondary_readonly_master_key: Option<KeyMetadata>,
+}
+
+/// Key metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct KeyMetadata {
+    /// Generation time
+    pub generation_time: Option<String>,
+}
+
+/// Private endpoint connection
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PrivateEndpointConnection {
+    /// Connection ID
+    pub id: Option<String>,
+    /// Connection name
+    pub name: Option<String>,
+    /// Connection type
+    #[serde(rename = "type")]
+    pub connection_type: Option<String>,
+    /// Group ID
+    pub group_id: Option<String>,
+    /// Private endpoint
+    pub private_endpoint: Option<PrivateEndpoint>,
+    /// Private link service connection state
+    pub private_link_service_connection_state: Option<PrivateLinkServiceConnectionState>,
+    /// Provisioning state
+    pub provisioning_state: Option<String>,
+    /// Resource group
+    pub resource_group: Option<String>,
+}
+
+/// Private endpoint
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PrivateEndpoint {
+    /// Private endpoint ID
+    pub id: String,
+    /// Resource group
+    pub resource_group: Option<String>,
+}
+
+/// Private link service connection state
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PrivateLinkServiceConnectionState {
+    /// Actions required
+    pub actions_required: Option<String>,
+    /// Description
+    pub description: Option<String>,
+    /// Status
+    pub status: Option<String>,
+}
+
+/// Restore parameters
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RestoreParameters {
+    /// Restore mode
+    pub restore_mode: Option<String>,
+    /// Restore source
+    pub restore_source: Option<String>,
+    /// Restore timestamp in UTC
+    pub restore_timestamp_in_utc: Option<String>,
+}
+
+/// System data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemData {
+    /// Creation date
+    pub created_at: Option<String>,
+    /// Created by
+    pub created_by: Option<String>,
+    /// Created by type
+    pub created_by_type: Option<String>,
+    /// Last modification date
+    pub last_modified_at: Option<String>,
+    /// Last modified by
+    pub last_modified_by: Option<String>,
+    /// Last modified by type
+    pub last_modified_by_type: Option<String>,
+}
+
+/// Virtual network rule
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VirtualNetworkRule {
+    /// Virtual network ID
+    pub id: String,
+    /// Whether to ignore missing VNet service endpoint
+    pub ignore_missing_vnet_service_endpoint: Option<bool>,
+    /// Resource group
+    pub resource_group: Option<String>,
+}
+
+/// Capacity settings
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CapacitySettings {
-    /// Throughput total provisionado
+    /// Total provisioned throughput limit
     pub total_throughput_limit: Option<i32>,
 }
 
-/// Política de consistência
+/// Consistency policy
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConsistencyPolicy {
-    /// Nível de consistência padrão
+    /// Default consistency level
     pub default_consistency_level: String,
-    /// Staleness máximo tolerado
+    /// Maximum tolerated staleness
     pub max_staleness_prefix: Option<i64>,
-    /// Intervalo máximo de staleness
+    /// Maximum staleness interval
     pub max_interval_in_seconds: Option<i32>,
 }
 
-/// Política de CORS
+/// CORS policy
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CorsPolicy {
-    /// Origens permitidas
+    /// Allowed origins
     pub allowed_origins: String,
-    /// Métodos permitidos
+    /// Allowed methods
     pub allowed_methods: String,
-    /// Headers permitidos
+    /// Allowed headers
     pub allowed_headers: String,
-    /// Headers expostos
+    /// Exposed headers
     pub exposed_headers: String,
-    /// Idade máxima
+    /// Maximum age
     pub max_age_in_seconds: Option<i32>,
 }
 
-/// Localização de uma account
+/// Account location
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountLocation {
-    /// Nome da localização
+    /// Location name
     pub location_name: String,
-    /// Status de provisionamento
+    /// Provisioning status
     pub provisioning_state: String,
-    /// Status de failover
+    /// Failover status
     pub failover_priority: i32,
-    /// Se é região de escrita
+    /// Whether it's a write region
     pub is_zone_redundant: Option<bool>,
+    /// Location ID
+    pub id: Option<String>,
+    /// Document endpoint URI
+    pub document_endpoint: Option<String>,
 }
 
-/// Informações de uma Database do Cosmos DB
+/// Cosmos DB Database information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CosmosDatabase {
-    /// Nome da database
+    /// Database name
     pub name: String,
-    /// ID da database
+    /// Database ID
     pub id: String,
-    /// Configurações de throughput
+    /// Throughput settings
     pub throughput_settings: Option<ThroughputSettings>,
 }
 
-/// Configurações de throughput
+/// Throughput settings
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ThroughputSettings {
-    /// Throughput manual
+    /// Manual throughput
     pub throughput: Option<i32>,
-    /// Configurações de autoscale
+    /// Autoscale settings
     pub autoscale_settings: Option<AutoscaleSettings>,
 }
 
-/// Configurações de autoscale
+/// Autoscale settings
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AutoscaleSettings {
-    /// Throughput máximo
+    /// Maximum throughput
     pub max_throughput: i32,
 }
 
-/// Informações de um Container do Cosmos DB
+/// Cosmos DB Container information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CosmosContainer {
-    /// Nome do container
+    /// Container name
     pub name: String,
-    /// ID do container
+    /// Container ID
     pub id: String,
-    /// Chave de partição
+    /// Partition key
     pub partition_key: Option<PartitionKey>,
-    /// Configurações de throughput
+    /// Throughput settings
     pub throughput_settings: Option<ThroughputSettings>,
-    /// Política de indexação
+    /// Indexing policy
     pub indexing_policy: Option<IndexingPolicy>,
 }
 
-/// Chave de partição
+/// Partition key
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PartitionKey {
-    /// Caminhos da chave de partição
+    /// Partition key paths
     pub paths: Vec<String>,
-    /// Tipo da chave de partição
+    /// Partition key type
     pub kind: String,
 }
 
-/// Política de indexação
+/// Indexing policy
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexingPolicy {
-    /// Se indexação automática está habilitada
+    /// Whether automatic indexing is enabled
     pub automatic: Option<bool>,
-    /// Modo de indexação
+    /// Indexing mode
     pub indexing_mode: Option<String>,
-    /// Caminhos incluídos
+    /// Included paths
     pub included_paths: Option<Vec<IndexPath>>,
-    /// Caminhos excluídos
+    /// Excluded paths
     pub excluded_paths: Option<Vec<IndexPath>>,
 }
 
-/// Caminho de indexação
+/// Index path
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexPath {
-    /// Caminho
+    /// Path
     pub path: String,
 }
 
-/// Chaves de acesso de uma Cosmos Account
+/// Cosmos Account access keys
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CosmosKeys {
-    /// Chave primária master
+    /// Primary master key
     pub primary_master_key: String,
-    /// Chave secundária master
+    /// Secondary master key
     pub secondary_master_key: String,
-    /// Chave primária readonly
+    /// Primary readonly master key
     pub primary_readonly_master_key: String,
-    /// Chave secundária readonly
+    /// Secondary readonly master key
     pub secondary_readonly_master_key: String,
 }
 
-/// Strings de conexão de uma Cosmos Account
+/// Cosmos Account connection strings
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CosmosConnectionStrings {
-    /// Strings de conexão
+    /// Connection strings
     pub connection_strings: Vec<ConnectionString>,
 }
 
-/// String de conexão individual
+/// Individual connection string
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ConnectionString {
-    /// Descrição da conexão
+    /// Connection description
     pub description: String,
-    /// String de conexão
+    /// Connection string
     pub connection_string: String,
 } 

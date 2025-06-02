@@ -1,89 +1,89 @@
-//! Example of using the Azure CLI wrapper with specific subscriptions
+//! Example showing how to work with different Azure subscriptions
 
 use rust_az_wrapper::{AzureClient, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    println!("🔍 Demonstrating specific subscription usage...");
-
-    // 1. Default client (uses current Azure CLI subscription)
-    let default_client = AzureClient::new()?;
+    println!("🔍 Azure Subscriptions Example");
     
+    // Create basic client (uses default subscription)
+    let basic_client = AzureClient::new()?;
+    
+    // List all available subscriptions
     println!("\n📋 Listing all available subscriptions...");
-    let subscriptions = default_client.list_subscriptions().await?;
+    let subscriptions = basic_client.list_subscriptions().await?;
     
-    for (i, sub) in subscriptions.iter().enumerate().take(3) {
-        println!("  {}. {} ({})", i + 1, sub.display_name, sub.id);
+    for (i, subscription) in subscriptions.iter().enumerate() {
+        println!("  {}. {} ({})", 
+            i + 1, 
+            subscription.display_name, 
+            &subscription.id[..8] // Show only first 8 chars for privacy
+        );
+        println!("     State: {}", subscription.state);
+        println!("     Tenant: {}", &subscription.tenant_id[..8]);
     }
-
-    if subscriptions.is_empty() {
-        println!("⚠️ No subscriptions found.");
+    
+    if subscriptions.len() < 2 {
+        println!("⚠️ Need at least 2 subscriptions to demonstrate switching");
         return Ok(());
     }
-
-    // 2. Client configured for a specific subscription
+    
+    // Create client with specific subscription
     let first_subscription = &subscriptions[0];
-    println!("\n🎯 Using specific subscription: {}", first_subscription.display_name);
-    
     let specific_client = AzureClient::with_subscription(first_subscription.id.clone())?;
+    println!("\n🎯 Created client for subscription: {}", first_subscription.display_name);
+    println!("📍 Configured subscription: {:?}", specific_client.subscription_id());
     
-    // 3. Check which subscription is configured
-    println!("📍 Configured subscription: {:?}", specific_client.get_subscription());
+    // Show current subscription using the basic client
+    println!("\n🔍 Current subscription details:");
+    let current = basic_client.show_current_subscription().await?;
+    println!("  Name: {}", current.display_name);
+    println!("  State: {}", current.state);
     
-    // 4. Use client with specific subscription
-    println!("\n🗂️ Listing resource groups from specific subscription...");
-    let resource_groups = specific_client.list_resource_groups(None).await?;
+    // Demonstrate dynamic subscription switching with mutable client
+    println!("\n🔄 Demonstrating subscription switching...");
+    let mut mutable_client = AzureClient::new()?;
     
-    println!("📁 Resource groups found: {}", resource_groups.len());
-    for (i, rg) in resource_groups.iter().enumerate().take(3) {
-        println!("  {}. {} ({})", i + 1, rg.name, rg.location);
+    if let Some(second_subscription) = subscriptions.get(1) {
+        println!("Initial subscription: {:?}", mutable_client.subscription_id());
+        
+        // Switch to different subscription
+        mutable_client.set_subscription(second_subscription.id.clone());
+        println!("After switching to '{}': {:?}", 
+                second_subscription.display_name,
+                mutable_client.subscription_id());
+        
+        // Reset to no specific subscription (uses default)
+        mutable_client.set_subscription("".to_string()); // Empty means default
+        println!("After resetting: {:?}", mutable_client.subscription_id());
     }
-
-    // 5. Mutable client to switch subscriptions
-    if subscriptions.len() > 1 {
-        let mut mutable_client = AzureClient::new()?;
+    
+    // List resource groups using different subscriptions
+    println!("\n🗂️ Comparing resource groups across subscriptions...");
+    
+    for (i, subscription) in subscriptions.iter().take(2).enumerate() {
+        let client = AzureClient::with_subscription(subscription.id.clone())?;
         
-        println!("\n🔄 Demonstrating subscription switching...");
-        println!("Initial subscription: {:?}", mutable_client.get_subscription());
-        
-        // Switch to second subscription
-        let second_subscription = &subscriptions[1];
-        mutable_client.use_subscription(second_subscription.id.clone());
-        println!("After switching: {:?}", mutable_client.get_subscription());
-        
-        // Return to default subscription
-        mutable_client.clear_subscription();
-        println!("After clearing: {:?}", mutable_client.get_subscription());
-    }
-
-    // 6. Check differences between subscriptions
-    if subscriptions.len() > 1 {
-        println!("\n🔍 Comparing resource groups between subscriptions...");
-        
-        let first_sub_client = AzureClient::with_subscription(subscriptions[0].id.clone())?;
-        let second_sub_client = AzureClient::with_subscription(subscriptions[1].id.clone())?;
-        
-        let first_rgs = first_sub_client.list_resource_groups(None).await?;
-        let second_rgs = second_sub_client.list_resource_groups(None).await?;
-        
-        println!("  Subscription '{}': {} resource groups", 
-                 subscriptions[0].display_name, first_rgs.len());
-        println!("  Subscription '{}': {} resource groups", 
-                 subscriptions[1].display_name, second_rgs.len());
-    }
-
-    // 7. Example with Cosmos DB accounts in specific subscription
-    if !resource_groups.is_empty() {
-        println!("\n🌍 Searching for Cosmos accounts in specific subscription...");
-        
-        let cosmos_accounts = specific_client.list_cosmos_accounts(None).await?;
-        println!("🗄️ Total Cosmos accounts in subscription: {}", cosmos_accounts.len());
-        
-        for account in cosmos_accounts.iter().take(2) {
-            println!("  - {} ({})", account.name, account.location);
+        match client.list_resource_groups(None).await {
+            Ok(resource_groups) => {
+                println!("  Subscription {}: {} resource groups", 
+                        i + 1, 
+                        resource_groups.len());
+                
+                for rg in resource_groups.iter().take(3) {
+                    println!("    - {} ({})", rg.name, rg.location);
+                }
+                
+                if resource_groups.len() > 3 {
+                    println!("    ... and {} more", resource_groups.len() - 3);
+                }
+            }
+            Err(e) => {
+                println!("  Subscription {}: Error listing resource groups: {}", i + 1, e);
+            }
         }
     }
-
+    
     println!("\n✅ Subscription example completed!");
     Ok(())
 } 
