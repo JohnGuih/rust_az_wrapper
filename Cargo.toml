@@ -2,6 +2,20 @@
 name = "rust_az_wrapper"
 version = "0.1.0"
 edition = "2024"
+description = "Type-safe Rust wrapper for Azure CLI focused on Cosmos DB operations"
+license = "MIT"
+repository = "https://github.com/JohnGuih/rust_az_wrapper"
+homepage = "https://github.com/JohnGuih/rust_az_wrapper"
+documentation = "https://docs.rs/rust_az_wrapper"
+readme = "README.md"
+keywords = ["azure", "cosmosdb", "cli", "wrapper", "database"]
+categories = ["api-bindings", "command-line-utilities", "database"]
+authors = ["João <your-email@example.com>"]
+exclude = [
+    "tests/*",
+    "examples/*",
+    ".github/*",
+]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
